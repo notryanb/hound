@@ -19,4 +19,5 @@ travis-ci = { repository = "ruuda/hound", branch = "v3.2.0" }
 # An older version of cpal, but newer versions depend on the futures library,
 # which is incompatible with the version of Rust that Hound guarantees to
 # support.
-cpal = "0.2.12"
+# cpal = "0.2.12"
+cpal = "0.5.1"
