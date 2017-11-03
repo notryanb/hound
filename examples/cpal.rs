@@ -20,8 +20,8 @@ use std::thread;
 
 fn main() {
     // Make a WavReader that reads the file provided as program argument.
-    let fname = env::args().nth(1).expect("no file given");
-    let mut reader = hound::WavReader::open(fname).unwrap();
+    let file_name = env::args().nth(1).expect("no file given");
+    let mut reader = hound::WavReader::open(file_name).unwrap();
     let spec = reader.spec();
 
     let endpoint = cpal::get_default_endpoint().unwrap();
@@ -37,11 +37,17 @@ fn main() {
 
     let samples_rate = format.samples_rate.0 as f32;
     let mut sample_clock = 0f32;
+
+    // TODO:
+    // Checkout API for WavReader.
+    // Grab all samples - check if there is an iterator available.
+    // make sure the event loop grabs this next() value.
     let samples = reader.samples().map(|s| s.unwrap()).collect();
 
     let mut next_value = || {
-        sample_clock = (sample_clock + 1.0) % samples_rate;
-        (sample_clock * 440.0 / samples_rate)
+        samples.next::<f32>();
+        // sample_clock = (sample_clock + 1.0) % samples_rate;
+        // (sample_clock * 440.0 / samples_rate)
     };
 
 
@@ -61,6 +67,7 @@ fn main() {
             cpal::UnknownTypeBuffer::U16(mut buffer) => {
                 for sample in buffer.chunks_mut(format.channels.len()) {
                     // let value = ((next_value() * 0.5 + 0.5) * std::u16::MAX as f32) as u16;
+                    let value = next_value();
                     for out in sample.iter_mut() {
                         *out = value;
                     }
@@ -70,6 +77,7 @@ fn main() {
             cpal::UnknownTypeBuffer::I16(mut buffer) => {
                 for sample in buffer.chunks_mut(format.channels.len()) {
                     // let value = (next_value() * std::i16::MAX as f32) as i16;
+                    let value = next_value();
                     for out in sample.iter_mut() {
                         *out = value;
                     }
@@ -78,7 +86,7 @@ fn main() {
 
             cpal::UnknownTypeBuffer::F32(mut buffer) => {
                 for sample in buffer.chunks_mut(format.channels.len()) {
-                    // let value = next_value();
+                    let value = next_value();
                     for out in sample.iter_mut() {
                         *out = value;
                     }
